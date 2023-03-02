@@ -31,20 +31,48 @@ posts_schema = PostSchema(many=True)
 
 
 @app.route('/post', methods=['POST'])
-def create_post():
-    title = request.json("title")
-    description = request.json("description")
-    author = request.json("author")
+def post():
+
+    title = request.json['title']
+    description = request.json['description']
+    author = request.json['author']
 
     post = Post(title=title, description=description, author=author)
     db.session.add(post)
-    db.commit()
+    db.session.commit()
     return post_schema.jsonify(post)
 
 
-@app.route('/')
-def home():
-    return jsonify({"test": "test"})
+@app.route('/all-posts')
+def all_posts():
+    posts = Post.query.all()
+    return posts_schema.jsonify(posts)
+
+
+@app.route('/update-post/<int:id>', methods=["PUT"])
+def update_post(id):
+    post = Post.query.get(id)
+    post.title = request.json['title']
+    post.description = request.json['description']
+    post.author = request.json['author']
+
+    db.session.commit()
+    return post_schema.jsonify(post)
+
+
+@app.route('/delete-post/<int:id>', methods=["DELETE"])
+def delete_post(id):
+    post = Post.query.get(id)
+    db.session.delete(post)
+    db.session.commit()
+    return post_schema.jsonify(post)
+
+
+@app.route('/post/<int:id>')
+def home(id):
+    post = Post.query.get(id)
+    return post_schema.jsonify(post)
+    # return jsonify({"test": "test"})
 
 
 if __name__ == "__main__":
